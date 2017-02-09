@@ -10,7 +10,7 @@ conversation = ConversationV1(
 )
 
 context = {}
-workspace_id = '51785f59-ce4f-4bd2-865d-61c7c412e31c'   # Moe2 workspace
+workspace_id = '59685873-ce62-47b6-adbf-7e2de15f6ca8'   # Ceci workspace
 
 def debug(response, verbose=False):
     if verbose:
