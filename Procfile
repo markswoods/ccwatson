@@ -1,0 +1,1 @@
+web: gunicorn ccwatsonip:app --log-file -
