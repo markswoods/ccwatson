@@ -15,18 +15,37 @@ api = Api(app)
 
 beers = []
 
-class IntentName(Resource):
-    def get(self):
-        return {'response': 'empty'}
+class Welcome(Resource):
+    def post(self):
+        print 'Handling Welcome intent...'
+        context = request.get_json()
         
+        # Extract the username and do a lookup to determine if this is an Agent, or CCC
+        #print json.dumps(context, indent=2)
+        username = context['username']
+        if username == 'markswoods':
+            type = 'agent'
+        else:
+            type = 'internal'
+        context['type'] = type
+        
+        #print 'username: %s, type: %s' % (username, type)
+        return {'message': '', 'context': context}
+
+class Goodbye(Resource):
+    def post(self):
+        print 'Handling Goodbye...'  
+        context = request.get_json()
+        return {'message': '', 'context': context}
+              
 class Auth(Resource):
     def get(self):
         print "Authentication made"
         return {'response': 'Authorized'}
         
-
 # Pure rest
-api.add_resource(IntentName, '/intent')
+api.add_resource(Welcome, '/Welcome')
+api.add_resource(Goodbye, '/Goodbye')
 api.add_resource(Auth, '/')
         
 if __name__ == '__main__':
