@@ -22,10 +22,12 @@ def debug(response, verbose=False):
             print 'entities: ' 
             for e in response['entities']: 
                 print e
-        print 'input: ' + response['input']['text']
+        if response['input']['text'] != '':
+            print 'input: ' + response['input']['text']
         # print 'output: ' + json.dumps(response['output'], indent=2)
         if 'action' in response['output']:
             print 'action: ' + response['output']['action']
+        print 'Context: %s' % json.dumps(response['context'], indent=2)
 
 #
 # Set up
@@ -89,7 +91,7 @@ while intent != 'Goodbye':
     context = ip_response['context']    # renew the context
     response['context'] = context       # update the response context (for debugging)
 
-    debug(response, verbose=True)   # debug AFTER Intent Processor has run - one full convo cycle
+    debug(response)   # debug AFTER Intent Processor has run - one full convo cycle
     
     print 'Ceci: ' + response_msg
 
