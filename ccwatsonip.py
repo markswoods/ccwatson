@@ -82,6 +82,12 @@ class AgencyChangeRequest(Resource):
         msg += ' I have created incident #' + incident_number + ' for you in Service Now'
         return {'message': msg, 'context': context}
 
+class Hello(Resource):
+    def post(self):
+        print 'Handling Hello...'  
+        context = request.get_json()
+        return {'message': '', 'context': context}
+
 class Goodbye(Resource):
     def post(self):
         print 'Handling Goodbye...'  
@@ -95,6 +101,7 @@ class Auth(Resource):
         
 # Pure rest
 ccwatsonip.add_resource(Welcome, '/Welcome')
+ccwatsonip.add_resource(Goodbye, '/Hello')
 ccwatsonip.add_resource(Goodbye, '/Goodbye')
 ccwatsonip.add_resource(AgencyChangeRequest, '/AgencyChangeRequest')
 ccwatsonip.add_resource(Auth, '/')
