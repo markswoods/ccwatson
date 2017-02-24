@@ -101,7 +101,7 @@ class Auth(Resource):
         
 # Pure rest
 ccwatsonip.add_resource(Welcome, '/Welcome')
-ccwatsonip.add_resource(Goodbye, '/Hello')
+ccwatsonip.add_resource(Hello, '/Hello')
 ccwatsonip.add_resource(Goodbye, '/Goodbye')
 ccwatsonip.add_resource(AgencyChangeRequest, '/AgencyChangeRequest')
 ccwatsonip.add_resource(Auth, '/')
