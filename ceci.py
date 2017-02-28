@@ -10,24 +10,32 @@ import pwd  # The Intent Processor will determine if this is an Agent or CCC
 import sys, getopt
 from requests.auth import HTTPBasicAuth
 
-def debug(response, verbose=False):
+def debug(response, ip_response, verbose=False):
     if verbose:
         print json.dumps(response, indent=2) 
     else:  
+        print '%-8s%-20s%-20s' %(' ', "Watson Response", "Ceci Response")
         if len(response['intents']) > 0:
-            print 'intents: ' + response['intents'][0]['intent']
-            #for i in response['intents']:
-            #    print i
+            intent = response['intents'][0]['intent']
+        else:
+            intent = ''
+        print '%-8s%-20s' % ('intent:', intent)
+        if 'action' in response['context']:
+            w_action = response['context']['action']
+        else:
+            w_action = ''
+        if 'action' in ip_response['context']:
+            ip_action = ip_response['context']['action']
+        else:
+            ip_action = ''
+        print '%-8s%-20s%-20s' % ('action: ', w_action, ip_action) 
         if len(response['entities']) > 0:
-            print 'entities: ' 
             for e in response['entities']: 
-                print e
+                print '%-8s%-8s%-8s' % ('entity:', e['entity'], e['value'])
         if response['input']['text'] != '':
-            print 'input: ' + response['input']['text']
+            print '%-8s%-20s' %('input:', response['input']['text'])
         # print 'output: ' + json.dumps(response['output'], indent=2)
-        if 'action' in response['output']:
-            print 'action: ' + response['output']['action']
-        print 'Context: %s' % json.dumps(response['context'], indent=2)
+        #print 'Context: %s' % json.dumps(response['context'], indent=2)
 
 #
 # Set up
@@ -38,7 +46,7 @@ conversation = ConversationV1(
     version='2016-09-20'
 )
 
-workspace_id = '59685873-ce62-47b6-adbf-7e2de15f6ca8'   # Ceci workspace
+workspace_id = 'fb5d5c79-0c0d-4229-8f3b-755e4502fdb9'   # Ceci workspace
 intent_processor = 'https://mw-ccwatson.herokuapp.com/'
 
 #
@@ -48,7 +56,7 @@ username = pwd.getpwuid(os.getuid()).pw_name    # Default, unless overridden at 
 try:
     opts, args = getopt.getopt(sys.argv[1:], 'hu:', ['help', 'local'])
 except getopt.GetoptError:  
-    print 'Usage: python ceci.py [-u username]'
+    print 'Usage: python ceci.py [-u username] [--local]'
     sys.exit(2)
 for opt, arg in opts:
     if opt == '-u':
@@ -56,7 +64,7 @@ for opt, arg in opts:
     if opt == '--local':
         intent_processor = 'http://localhost:5000/'
     if opt in ('-h', '--help'):
-        print 'Usage: python ceci.py [-u username]'
+        print 'Usage: python ceci.py [-u username] [--local]'
         sys.exit(2)
     
 # Initialize the context with a username, the IP will use this to determine the user type
@@ -72,11 +80,11 @@ response = conversation.message(
 )
 
 context = response['context']
-intent = 'Welcome'  # No intent established with the Welcome call so we'll override
+action = 'Welcome'  # No intent established with the Welcome call so we'll override
 # debug(response, verbose=True)
 
 # Keep the conversation going until a Goodbye intent is received
-while intent != 'Goodbye':    
+while action != 'Goodbye':    
     # Set up a default response based on what Watson provided
     if len(response['output']['text']) > 0:
         response_msg = response['output']['text'][0]
@@ -84,14 +92,14 @@ while intent != 'Goodbye':
         response_msg = ''
 
     # Call the Intent Processor, passing the context that came from Watson
-    ip_response = json.loads(requests.post(intent_processor + intent, json=context, auth=HTTPBasicAuth('mwoods', 'hp92275a')).text)
+    ip_response = json.loads(requests.post(intent_processor + action, json=context, auth=HTTPBasicAuth('mwoods', 'hp92275a')).text)
     if ip_response['message'] != '':
         response_msg = ip_response['message']
         
     context = ip_response['context']    # renew the context
     response['context'] = context       # update the response context (for debugging)
 
-    debug(response)   # debug AFTER Intent Processor has run - one full convo cycle
+    debug(response, ip_response)   # debug AFTER Intent Processor has run - one full convo cycle
     
     print 'Ceci: ' + response_msg
 
@@ -108,4 +116,8 @@ while intent != 'Goodbye':
         intent = response['intents'][0]['intent']
     else:
         intent = '' 
-
+    if 'action' in response['context']:
+        action = response['context']['action']
+    else:
+        action = intent
+    #print 'Specified action %s' % action

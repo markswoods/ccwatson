@@ -49,11 +49,22 @@ def log_incident(ci, description, notes, resolutionCode):
         print 'Error Response: ' + json.dumps(response.json(), indent=2)
         
     return incident_number
+
+# helper function for exception language
+def exception(form, exception_states):
+    if exception_states != '':
+        return ' Note: For ' + exception_states + ' you must submit the ' + form + ' PDF to the Call Center.'
+    else:
+        return ''
     
 class Welcome(Resource):
     def post(self):
         print 'Handling Welcome intent...'
         context = request.get_json()
+        if 'line' in context:
+            del context['line']
+        if 'action' in context:
+            del context['action']
         
         # Extract the username and do a lookup to determine if this is an Agent, or CCC
         #print json.dumps(context, indent=2)
@@ -74,12 +85,113 @@ class AgencyChangeRequest(Resource):
         
         #print json.dumps(context, indent=2)
         form = 'Internal Agency Change Request'
+        category = 'Agency Change Request'
+        exception_states = 'MD, VA'
         msg = 'The required WSR form is available only for P&C policies. ' + \
-            'Click ' + wsr_url + ' and select category Agency Change Request to find the ' + ' form.'
-        msg += ' Note: For MD and VA you must submit the Agency Change Request PDF to the Call Center.'
+            'Click ' + wsr_url + ' and select category ' + category + '  to find the ' + form + ' form.'
+        msg += exception(form, exception_states)
             
         incident_number = log_incident('WSR - Web Service Request', 'Intent: Agency Change Request', form, 'Education/Training')
-        msg += ' I have created incident #' + incident_number + ' for you in Service Now'
+        msg += ' I have created incident #' + incident_number + ' for you in Service Now.'
+        return {'message': msg, 'context': context}
+
+class FinancialAgentChangeRequest(Resource):
+    def post(self):
+        print 'Handling FinancialAgentChangeRequest intent...'
+        context = request.get_json()
+        
+        #print json.dumps(context, indent=2)
+        form = 'Allstate Financial Agent Change Request'
+        category = 'Agent Change Request'
+        exception_states = 'MA'
+        msg = 'This can be resolved by completing a WSR. ' + \
+            'Click ' + wsr_url + ' and select category ' + category + ', then fill out the ' + form + ' form.'
+        msg += exception(form, exception_states)
+            
+        incident_number = log_incident('WSR - Web Service Request', 'Intent: Financial Agent Change Request', form, 'Education/Training')
+        msg += ' I have created incident #' + incident_number + ' for you in Service Now.'
+        return {'message': msg, 'context': context}
+
+class RMBCDocumentationFaxSheet(Resource):
+    def post(self):
+        print 'Handling RMBCDocumentationFaxSheet intent...'
+        context = request.get_json()
+        
+        #print json.dumps(context, indent=2)
+        form = 'RMBC Documentation Fax Sheet'
+        category = 'Risk Management'
+        exception_states = 'NJ'
+        msg = 'This can be resolved by completing a WSR. ' + \
+            'Click ' + wsr_url + ' and select category ' + category + ', then fill out the ' + form + ' form.'
+        msg += exception(form, exception_states)
+            
+        incident_number = log_incident('WSR - Web Service Request', 'Intent: RMBC Documentation Fax Sheet', form, 'Education/Training')
+        msg += ' I have created incident #' + incident_number + ' for you in Service Now.'
+        return {'message': msg, 'context': context}
+
+class PolicyTermination(Resource):
+    def post(self):
+        print 'Handling PolicyTermination intent...'
+        line = ''
+        context = request.get_json()
+        if 'line' not in context:
+            message = ''
+            return {'message': message, 'context': context}
+        else:
+            line = context['line']
+            if line not in ['auto', 'property', 'commercial']:
+                message = ''
+                return {'message': message, 'context': context}
+        
+        #print json.dumps(context, indent=2)
+        if line in ['property', 'commercial']:
+            form = 'Change Termination Date'
+            category = 'Property Endorsements (R417)'
+            exception_states = ''
+            msg = 'We have a WSR for that! ' + \
+                'Click ' + wsr_url + ' and select category ' + category + ', then fill out the ' + form + ' form.'
+            msg += exception(form, exception_states)
+        else:
+            form = 'Process Endorsements on Terminated Policies'
+            category = 'Auto Endorsements (R-42)'
+            exception_states = ''
+            msg = 'We have a WSR for that! ' + \
+                'Click ' + wsr_url + ' and select category ' + category + ', then fill out the ' + form + ' form.'
+            msg += exception(form, exception_states)
+            
+        incident_number = log_incident('WSR - Web Service Request', 'Intent: Fix Policy Termination Date', form, 'Education/Training')
+        msg += ' I have created incident #' + incident_number + ' for you in Service Now.'
+        del context['action']
+        del context['line']
+        return {'message': msg, 'context': context}
+
+class AddressChange(Resource):
+    def post(self):
+        print 'Handling AddressChange intent...'
+        address_type = ''
+        context = request.get_json()
+
+        if 'address_type' not in context:
+            message = ''
+            return {'message': message, 'context': context}
+        else:
+            address_type = context['address_type']
+            if address_type not in ['mailing', 'residence']:
+                message = ''
+                return {'message': message, 'context': context}
+        
+        #print json.dumps(context, indent=2)
+        form = 'TBD'
+        category = 'TBD'
+        exception_states = ''
+        msg = 'This can be resolved by completing a WSR. ' + \
+            'Click ' + wsr_url + ' and select category ' + category + ', then fill out the ' + form + ' form.'
+        msg += exception(form, exception_states)
+            
+        incident_number = log_incident('WSR - Web Service Request', 'Intent: Address Change', form, 'Education/Training')
+        msg += ' I have created incident #' + incident_number + ' for you in Service Now.'
+        del context['action']
+        del context['address_type']
         return {'message': msg, 'context': context}
 
 class Hello(Resource):
@@ -104,6 +216,10 @@ ccwatsonip.add_resource(Welcome, '/Welcome')
 ccwatsonip.add_resource(Hello, '/Hello')
 ccwatsonip.add_resource(Goodbye, '/Goodbye')
 ccwatsonip.add_resource(AgencyChangeRequest, '/AgencyChangeRequest')
+ccwatsonip.add_resource(FinancialAgentChangeRequest, '/FinancialAgentChangeRequest')
+ccwatsonip.add_resource(RMBCDocumentationFaxSheet, '/RMBCDocumentationFaxSheet')
+ccwatsonip.add_resource(PolicyTermination, '/PolicyTermination')
+ccwatsonip.add_resource(AddressChange, '/AddressChange')
 ccwatsonip.add_resource(Auth, '/')
         
 if __name__ == '__main__':
