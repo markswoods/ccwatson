@@ -42,12 +42,12 @@ def debug(response, ip_response, verbose=False):
 # Set up
 #
 conversation = ConversationV1(
-    username='07a61859-9e58-4ca9-9008-3f1fef38e269',
-    password='6qpdxCkHE3Py',
+    username=os.environ['WATSON_USERNAME'],
+    password=os.environ['WATSON_PASSWORD'],
     version='2016-09-20'
 )
 
-workspace_id = 'fb5d5c79-0c0d-4229-8f3b-755e4502fdb9'   # Ceci workspace
+workspace_id = os.environ['WATSON_WORKSPACE_ID']   # Ceci workspace
 intent_processor = 'https://mw-ccwatson.herokuapp.com/'
 DEBUG = False
 #
