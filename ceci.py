@@ -11,31 +11,32 @@ import sys, getopt
 from requests.auth import HTTPBasicAuth
 
 def debug(response, ip_response, verbose=False):
-    if verbose:
-        print json.dumps(response, indent=2) 
-    else:  
-        print '%-8s%-20s%-20s' %(' ', "Watson Response", "Ceci Response")
-        if len(response['intents']) > 0:
-            intent = response['intents'][0]['intent']
-        else:
-            intent = ''
-        print '%-8s%-20s' % ('intent:', intent)
-        if 'action' in response['context']:
-            w_action = response['context']['action']
-        else:
-            w_action = ''
-        if 'action' in ip_response['context']:
-            ip_action = ip_response['context']['action']
-        else:
-            ip_action = ''
-        print '%-8s%-20s%-20s' % ('action: ', w_action, ip_action) 
-        if len(response['entities']) > 0:
-            for e in response['entities']: 
-                print '%-8s%-8s%-8s' % ('entity:', e['entity'], e['value'])
-        if response['input']['text'] != '':
-            print '%-8s%-20s' %('input:', response['input']['text'])
-        # print 'output: ' + json.dumps(response['output'], indent=2)
-        #print 'Context: %s' % json.dumps(response['context'], indent=2)
+    if DEBUG == True:
+        if verbose:
+            print json.dumps(response, indent=2) 
+        else:  
+            print '%-8s%-20s%-20s' %(' ', "Watson Response", "Ceci Response")
+            if len(response['intents']) > 0:
+                intent = response['intents'][0]['intent']
+            else:
+                intent = ''
+            print '%-8s%-20s' % ('intent:', intent)
+            if 'action' in response['context']:
+                w_action = response['context']['action']
+            else:
+                w_action = ''
+            if 'action' in ip_response['context']:
+                ip_action = ip_response['context']['action']
+            else:
+                ip_action = ''
+            print '%-8s%-20s%-20s' % ('action: ', w_action, ip_action) 
+            if len(response['entities']) > 0:
+                for e in response['entities']: 
+                    print '%-8s%-8s%-8s' % ('entity:', e['entity'], e['value'])
+            if response['input']['text'] != '':
+                print '%-8s%-20s' %('input:', response['input']['text'])
+            # print 'output: ' + json.dumps(response['output'], indent=2)
+            #print 'Context: %s' % json.dumps(response['context'], indent=2)
 
 #
 # Set up
@@ -48,21 +49,23 @@ conversation = ConversationV1(
 
 workspace_id = 'fb5d5c79-0c0d-4229-8f3b-755e4502fdb9'   # Ceci workspace
 intent_processor = 'https://mw-ccwatson.herokuapp.com/'
-
+DEBUG = False
 #
 # Get command line parms
 #
 username = pwd.getpwuid(os.getuid()).pw_name    # Default, unless overridden at command line
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'hu:', ['help', 'local'])
+    opts, args = getopt.getopt(sys.argv[1:], 'hu:', ['help', 'local', 'debug'])
 except getopt.GetoptError:  
-    print 'Usage: python ceci.py [-u username] [--local]'
+    print 'Usage: python ceci.py [-u username] [--local] [--debug]'
     sys.exit(2)
 for opt, arg in opts:
     if opt == '-u':
         username = arg
     if opt == '--local':
         intent_processor = 'http://localhost:5000/'
+    if opt == '--debug':
+        DEBUG = True
     if opt in ('-h', '--help'):
         print 'Usage: python ceci.py [-u username] [--local]'
         sys.exit(2)
@@ -101,7 +104,7 @@ while action != 'Goodbye':
 
     debug(response, ip_response)   # debug AFTER Intent Processor has run - one full convo cycle
     
-    print 'Ceci: ' + response_msg
+    print 'Ceci: ' + '\033[1m\033[32m' + response_msg + '\033[0m'
 
     # Get user input and pass to Watson Conversation Service, preserving context
     text = raw_input(': ')

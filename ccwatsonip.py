@@ -3,20 +3,21 @@ from flask_restful import Resource, Api, reqparse
 from flask_basicauth import BasicAuth
 import requests
 import json
+import os
 
 app = Flask(__name__)
 
-app.config['BASIC_AUTH_USERNAME'] = 'mwoods'
-app.config['BASIC_AUTH_PASSWORD'] = 'hp92275a'
-app.config['BASIC_AUTH_FORCE'] = True
+app.config['BASIC_AUTH_USERNAME'] = os.environ['BASIC_AUTH_USERNAME']
+app.config['BASIC_AUTH_PASSWORD'] = os.environ['BASIC_AUTH_PASSWORD']
+app.config['BASIC_AUTH_FORCE'] = os.environ['BASIC_AUTH_FORCE']
 
 basic_auth = BasicAuth(app)
 ccwatsonip = Api(app)
 
 wsr_url = 'https://agentsupport.allstate.com/webservices/'
 sn_url = 'https://allstatesand2.service-now.com/api/now/table/incident'
-sn_user = 'sys_rest_watson'
-sn_pwd = '!wNT4jm*$rRs'
+sn_user = os.environ['SN_USER']
+sn_pwd = os.environ['SN_PWD']
 
 def log_incident(ci, description, notes, resolutionCode):
     # create a Service Now incident and return the incident number
